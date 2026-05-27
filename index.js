@@ -18,7 +18,7 @@ function delay(ms) {
 
 /*
 |--------------------------------------------------------------------------
-| MEMÓRIA DE UTILIZADOR
+| MEMÓRIA
 |--------------------------------------------------------------------------
 */
 
@@ -53,7 +53,7 @@ function getGreetingByTime() {
 |--------------------------------------------------------------------------
 */
 
-function normalize(text) {
+function normalize(text = "") {
   return text
     .normalize("NFD")
     .replace(/[\u0300-\u036f]/g, "")
@@ -76,11 +76,10 @@ const faq = [
       "o que e horizon",
       "quem sao voces",
       "o que fazem",
-      "horizon capital",
       "empresa",
       "sociedade financeira",
-      "quem e a horizon",
-      "qual e a empresa"
+      "horizon capital",
+      "quem e a horizon"
     ],
     answer:
       "A Horizon Capital Dealer é uma sociedade financeira de corretagem especializada em investimentos, mercado de capitais, soluções de tesouraria e assessoria financeira estratégica.\n\nApoiamos particulares, empresas e investidores institucionais no acesso estruturado, seguro e eficiente ao mercado financeiro."
@@ -169,7 +168,7 @@ const faq = [
       "posso perder dinheiro"
     ],
     answer:
-      "Sim.\n\nTodos os investimentos possuem algum nível de risco. O importante é investir de acordo com o perfil financeiro, objetivos, tolerância ao risco e conhecimento sobre o produto."
+      "Todos os investimentos possuem algum nível de risco. O importante é investir de acordo com o perfil financeiro, objetivos, tolerância ao risco e conhecimento sobre o produto."
   },
 
   {
@@ -225,7 +224,7 @@ const faq = [
       "criar conta"
     ],
     answer:
-      "O processo normalmente inclui:\n\n1. Contacto inicial\n2. Entrega de documentos\n3. Processo KYC\n4. Avaliação do perfil de investidor\n5. Abertura da conta"
+      "O processo normalmente inclui:\n\n1. Contacto inicial\n2. Entrega de documentos\n3. Processo KYC\n4. Avaliação do perfil de investidor\n5. Abertura da conta."
   },
 
   {
@@ -270,7 +269,7 @@ const faq = [
       "meus dados"
     ],
     answer:
-      "Sim.\n\nA Horizon trata toda informação dos clientes com confidencialidade e elevados padrões de segurança."
+      "A Horizon trata toda informação dos clientes com confidencialidade e elevados padrões de segurança."
   },
 
   {
@@ -278,8 +277,8 @@ const faq = [
     keywords: [
       "consultoria",
       "assessoria",
-      "servicos",
-      "consultoria financeira"
+      "consultoria financeira",
+      "servicos"
     ],
     answer:
       "Prestamos serviços de consultoria financeira, assessoria de investimentos, corporate finance, soluções de tesouraria e assessoria bancária."
@@ -293,29 +292,7 @@ const faq = [
       "credito empresarial"
     ],
     answer:
-      "Sim.\n\nApoiamos empresas na identificação das soluções financeiras mais adequadas disponíveis no sistema financeiro nacional."
-  },
-
-  {
-    intent: "bancos",
-    keywords: [
-      "trabalham com bancos",
-      "relacao com bancos",
-      "parceria bancos"
-    ],
-    answer:
-      "A Horizon pode interagir institucionalmente com diferentes entidades financeiras no âmbito dos serviços prestados aos clientes."
-  },
-
-  {
-    intent: "negociacao_bancaria",
-    keywords: [
-      "negociar melhores condicoes",
-      "condicoes bancarias",
-      "negociacao bancaria"
-    ],
-    answer:
-      "Dependendo do perfil e necessidades do cliente, a Horizon pode apoiar na análise e negociação institucional de soluções disponíveis no mercado."
+      "Apoiamos empresas na identificação das soluções financeiras mais adequadas disponíveis no sistema financeiro nacional."
   },
 
   {
@@ -340,49 +317,6 @@ const faq = [
   },
 
   {
-    intent: "reduzir_risco",
-    keywords: [
-      "reduzir riscos",
-      "como reduzir risco",
-      "gestao risco"
-    ],
-    answer:
-      "A Horizon ajuda a reduzir riscos através de análise de mercado, avaliação de perfil, disciplina de risco, adequação de investimentos e acompanhamento estratégico."
-  },
-
-  {
-    intent: "comecar_investir",
-    keywords: [
-      "por onde comecar",
-      "como comecar",
-      "primeiro passo investir"
-    ],
-    answer:
-      "O primeiro passo é compreender os seus objetivos, perfil e horizonte financeiro.\n\nA Horizon pode ajudar nesse processo."
-  },
-
-  {
-    intent: "educacao_financeira",
-    keywords: [
-      "educacao financeira",
-      "aprendem investimentos",
-      "literacia financeira"
-    ],
-    answer:
-      "Sim.\n\nA educação financeira faz parte da visão institucional da Horizon Capital Dealer."
-  },
-
-  {
-    intent: "importancia_literacia",
-    keywords: [
-      "porque literacia financeira",
-      "importancia educacao financeira"
-    ],
-    answer:
-      "Investidores mais informados tomam melhores decisões, reduzem erros financeiros e conseguem proteger melhor o seu património."
-  },
-
-  {
     intent: "contacto",
     keywords: [
       "telefone",
@@ -403,26 +337,51 @@ const faq = [
 */
 
 function findAnswer(input) {
+
   let bestMatch = null;
   let bestScore = 0;
 
+  const inputWords = input.split(" ");
+
   for (const item of faq) {
+
     let score = 0;
 
     for (const keyword of item.keywords) {
+
       const normalizedKeyword = normalize(keyword);
 
+      /*
+      |--------------------------------------------------------------------------
+      | MATCH EXATO
+      |--------------------------------------------------------------------------
+      */
+
       if (input.includes(normalizedKeyword)) {
-        score += 2;
+        score += 10;
       }
 
-      const words = normalizedKeyword.split(" ");
+      /*
+      |--------------------------------------------------------------------------
+      | MATCH POR PALAVRAS
+      |--------------------------------------------------------------------------
+      */
 
-      for (const word of words) {
-        if (word.length > 3 && input.includes(word)) {
-          score += 1;
+      const keywordWords = normalizedKeyword.split(" ");
+
+      let matchedWords = 0;
+
+      for (const word of keywordWords) {
+
+        if (
+          word.length > 2 &&
+          inputWords.includes(word)
+        ) {
+          matchedWords++;
         }
       }
+
+      score += matchedWords;
     }
 
     if (score > bestScore) {
@@ -431,7 +390,11 @@ function findAnswer(input) {
     }
   }
 
-  return bestScore >= 2 ? bestMatch : null;
+  if (bestScore >= 2) {
+    return bestMatch;
+  }
+
+  return null;
 }
 
 /*
@@ -441,6 +404,7 @@ function findAnswer(input) {
 */
 
 async function startBot() {
+
   const { state, saveCreds } =
     await useMultiFileAuthState("session");
 
@@ -453,7 +417,12 @@ async function startBot() {
   sock.ev.on("creds.update", saveCreds);
 
   sock.ev.on("connection.update", (update) => {
-    const { connection, qr, lastDisconnect } = update;
+
+    const {
+      connection,
+      qr,
+      lastDisconnect
+    } = update;
 
     if (qr) {
       qrcode.generate(qr, { small: true });
@@ -465,6 +434,7 @@ async function startBot() {
     }
 
     if (connection === "close") {
+
       const reason =
         lastDisconnect?.error?.output?.statusCode;
 
@@ -473,15 +443,24 @@ async function startBot() {
         return;
       }
 
-      console.log("Reconectando...");
+      console.log("Reconectando em 5 segundos...");
+
       delay(5000).then(startBot);
     }
   });
 
+  /*
+  |--------------------------------------------------------------------------
+  | MENSAGENS
+  |--------------------------------------------------------------------------
+  */
+
   sock.ev.on("messages.upsert", async ({ messages }) => {
+
     const msg = messages[0];
 
-    if (!msg.message || msg.key.fromMe) return;
+    if (!msg.message) return;
+    if (msg.key.fromMe) return;
 
     const from = msg.key.remoteJid;
 
@@ -506,15 +485,17 @@ async function startBot() {
     */
 
     if (!user) {
+
       userMemory.set(from, {
-        name: null
+        name: null,
+        pendingQuestion: text
       });
 
       await sock.sendMessage(from, {
         text:
           `${getGreetingByTime()}.\n\n` +
           "Eu sou o Horizon IA, Assistente Inteligente da Horizon Capital Dealer.\n\n" +
-          "Por gentileza, poderia partilhar o seu nome para que eu possa atendê-lo(a) de forma mais próxima e personalizada?"
+          "Por gentileza, poderia partilhar o seu nome para que eu possa atendê-lo(a) de forma personalizada?"
       });
 
       return;
@@ -527,9 +508,37 @@ async function startBot() {
     */
 
     if (!user.name) {
+
       user.name = text.trim();
 
       userMemory.set(from, user);
+
+      /*
+      |--------------------------------------------------------------------------
+      | RECUPERA PERGUNTA ORIGINAL
+      |--------------------------------------------------------------------------
+      */
+
+      const originalQuestion =
+        user.pendingQuestion || "";
+
+      const matched =
+        findAnswer(normalize(originalQuestion));
+
+      if (matched) {
+
+        await sock.sendMessage(from, {
+          text:
+            `Muito obrigado, ${user.name}.\n\n` +
+            matched.answer
+        });
+
+        user.pendingQuestion = null;
+
+        userMemory.set(from, user);
+
+        return;
+      }
 
       await sock.sendMessage(from, {
         text:
@@ -549,6 +558,7 @@ async function startBot() {
     const matched = findAnswer(input);
 
     if (matched) {
+
       await sock.sendMessage(from, {
         text:
           `${getGreetingByTime()}, ${user.name}.\n\n` +
@@ -570,7 +580,9 @@ async function startBot() {
         "Não consegui identificar claramente a sua solicitação.\n\n" +
         "Para um atendimento mais adequado, recomendamos contacto directo através do telefone +258 87 667 4944."
     });
+
   });
+
 }
 
 startBot();
