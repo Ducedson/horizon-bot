@@ -49,13 +49,13 @@ function getGreetingByTime() {
 const faq = [
   {
     intent: "o_que_e_horizon",
-    keywords: ["o que e", "quem e", "horizon capital", "quem sao voces", "o que significa horizon"],
+    keywords: ["o que e", "quem e", "horizon capital", "o que significa horizon"],
     answer:
       "A Horizon Capital Dealer é uma sociedade financeira de corretagem especializada em investimentos, mercado de capitais, soluções de tesouraria e assessoria financeira estratégica.\n\nAjudamos particulares, empresas e investidores institucionais a acederem ao mercado financeiro de forma estruturada, segura e eficiente."
   },
   {
     intent: "horizon_e_banco",
-    keywords: ["banco", "horizon e banco", "quem sao voces", "é um banco"],
+    keywords: ["banco", "horizon e banco", "é um banco"],
     answer:
       "Não.\n\nA Horizon Capital Dealer não é um banco comercial. Somos uma sociedade financeira especializada em investimentos financeiros em mercado de capitais, intermediação financeira e assessoria estratégica."
   },
@@ -67,7 +67,7 @@ const faq = [
   },
   {
     intent: "o_que_e_investir",
-    keywords: ["investir", "o que e investir", "como faco para", "significa investir"],
+    keywords: ["investir", "o que e investir", "significa investir"],
     answer:
       "Investir significa aplicar recursos financeiros com o objetivo de obter retorno futuro."
   },
