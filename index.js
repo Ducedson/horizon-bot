@@ -12,7 +12,17 @@ function delay(ms) {
 
 /*
 |--------------------------------------------------------------------------
-| SAUDACAO AUTOMATICA - FUSO HORARIO DE MOCAMBIQUE
+| UTIL
+|--------------------------------------------------------------------------
+*/
+
+function random(arr) {
+  return arr[Math.floor(Math.random() * arr.length)];
+}
+
+/*
+|--------------------------------------------------------------------------
+| SAUDAÇÃO POR HORÁRIO (MOÇAMBIQUE)
 |--------------------------------------------------------------------------
 */
 
@@ -27,16 +37,34 @@ function getGreetingByTime() {
     }).format(now)
   );
 
-  if (hour >= 5 && hour < 12) {
-    return "Bom dia";
-  }
-
-  if (hour >= 12 && hour < 18) {
-    return "Boa tarde";
-  }
-
+  if (hour >= 5 && hour < 12) return "Bom dia";
+  if (hour >= 12 && hour < 18) return "Boa tarde";
   return "Boa noite";
 }
+
+/*
+|--------------------------------------------------------------------------
+| RESPOSTAS HUMANAS
+|--------------------------------------------------------------------------
+*/
+
+const greetingsResponses = [
+  (g) => `${g} 👋\n\nComo posso ajudar-te hoje?`,
+  (g) => `${g} 😊\n\nEstou aqui para te ajudar. O que precisas?`,
+  (g) => `${g} 👋\n\nBem-vindo(a)! Diz-me como posso ajudar.`
+];
+
+const howAreYouResponses = [
+  "Estou bem 😊 obrigado por perguntares! E contigo?",
+  "Tudo ótimo por aqui 👍 e contigo, como estás?",
+  "Estou a funcionar perfeitamente 😄 diz-me como posso ajudar-te."
+];
+
+const fallbackResponses = [
+  "Não consegui perceber bem 😅 podes explicar de outra forma?",
+  "Hmm 🤔 não entendi totalmente, podes reformular?",
+  "Preciso de mais detalhes para te ajudar melhor 😊"
+];
 
 /*
 |--------------------------------------------------------------------------
@@ -47,24 +75,19 @@ function getGreetingByTime() {
 const faqs = [
   {
     q: "O que e a Horizon Capital Dealer?",
-    a: "A Horizon Capital Dealer e uma sociedade financeira de corretagem especializada em investimentos, mercado de capitais, solucoes de tesouraria e assessoria financeira estrategica.\n\nApoiamos particulares, empresas e investidores institucionais no acesso estruturado, seguro e eficiente ao mercado financeiro.",
-    k: ["horizon", "horizon capital", "quem sao", "o que e horizon"]
+    a: "A Horizon Capital Dealer e uma sociedade financeira de corretagem especializada em investimentos, mercado de capitais, solucoes de tesouraria e assessoria financeira estrategica.",
+    k: ["horizon", "capital dealer", "o que e"]
   },
   {
     q: "A Horizon e um banco?",
-    a: "Nao. A Horizon Capital Dealer nao e um banco comercial. Somos uma sociedade financeira especializada em investimentos, mercado de capitais, intermediacao financeira e assessoria estrategica.",
-    k: ["banco", "horizon e banco"]
-  },
-  {
-    q: "Qual e a diferenca entre um banco e uma corretora?",
-    a: "Os bancos focam-se principalmente em contas bancarias, credito, pagamentos e servicos financeiros tradicionais.\n\nAs corretoras especializam-se em investimentos financeiros, estruturacao de produtos de mercado de capitais, gestao de liquidez e assessoria financeira.",
-    k: ["diferenca", "banco corretora", "corretora"]
+    a: "Nao. A Horizon Capital Dealer nao e um banco comercial, mas sim uma sociedade financeira especializada em investimentos e mercado de capitais.",
+    k: ["banco", "horizon banco"]
   }
 ];
 
 /*
 |--------------------------------------------------------------------------
-| NORMALIZACAO
+| NORMALIZAÇÃO
 |--------------------------------------------------------------------------
 */
 
@@ -75,20 +98,16 @@ function normalizeText(text) {
     .toLowerCase()
     .replace(/[^\w\s]/g, " ")
     .replace(/\s+/g, " ")
-    .replace(
-      /^(a pergunta e|minha pergunta e|quero saber|gostaria de saber|por favor)\s+/,
-      ""
-    )
     .trim();
 }
 
 /*
 |--------------------------------------------------------------------------
-| VALIDACOES
+| DETECÇÕES
 |--------------------------------------------------------------------------
 */
 
-function isGreeting(command) {
+function isGreeting(text) {
   return [
     "bom dia",
     "boa tarde",
@@ -96,25 +115,23 @@ function isGreeting(command) {
     "ola",
     "oi",
     "hello",
-    "hi",
-    "saudacoes"
-  ].includes(command);
+    "hi"
+  ].includes(text);
 }
 
-function isThanks(command) {
+function isHowAreYou(text) {
   return [
-    "obrigado",
-    "obrigada",
-    "muito obrigado",
-    "muito obrigada",
-    "thanks",
-    "valeu"
-  ].includes(command);
+    "como estas",
+    "como esta",
+    "tudo bem",
+    "como vai",
+    "how are you"
+  ].includes(text);
 }
 
 /*
 |--------------------------------------------------------------------------
-| PESQUISA FAQ
+| FAQ SEARCH
 |--------------------------------------------------------------------------
 */
 
@@ -126,9 +143,7 @@ function findFaq(command) {
     const question = normalizeText(faq.q);
 
     let score =
-      question.includes(command) || command.includes(question)
-        ? 2
-        : 0;
+      question.includes(command) || command.includes(question) ? 2 : 0;
 
     faq.k.forEach((keyword) => {
       if (command.includes(normalizeText(keyword))) {
@@ -143,22 +158,6 @@ function findFaq(command) {
   });
 
   return bestScore > 0 ? best : null;
-}
-
-/*
-|--------------------------------------------------------------------------
-| FORMATAR RESPOSTA
-|--------------------------------------------------------------------------
-*/
-
-function formatAnswer(faq) {
-  const greeting = getGreetingByTime();
-
-  return (
-    `${greeting}.\n\n` +
-    `${faq.a}\n\n` +
-    "Caso necessite de esclarecimentos adicionais, por favor contacte-nos pelo telefone +258 87 667 4944."
-  );
 }
 
 /*
@@ -184,43 +183,20 @@ async function startBot() {
 
     if (qr) {
       qrcode.generate(qr, { small: true });
-      console.log("Escaneia o QR Code acima");
+      console.log("Escaneia o QR Code");
     }
 
     if (connection === "open") {
-      console.log("BOT CONECTADO EM PRODUCAO");
+      console.log("BOT CONECTADO");
     }
 
     if (connection === "close") {
       const reason =
         lastDisconnect?.error?.output?.statusCode;
 
-      console.log("Conexao fechada. reason:", reason);
+      if (reason === DisconnectReason.loggedOut) return;
 
-      const wasLoggedOut =
-        reason === DisconnectReason.loggedOut;
-
-      const wasReplaced =
-        reason ===
-          DisconnectReason.connectionReplaced ||
-        reason === 440;
-
-      if (wasLoggedOut) {
-        console.log(
-          "Logout detectado. Apague a pasta session e leia o QR novamente."
-        );
-        return;
-      }
-
-      if (wasReplaced) {
-        console.log(
-          "Sessao substituida por outra instancia. Pare os bots duplicados e reinicie apenas um."
-        );
-        return;
-      }
-
-      console.log("Reconectando em 5 segundos...");
-
+      console.log("Reconectando...");
       delay(5000).then(startBot);
     }
   });
@@ -228,8 +204,7 @@ async function startBot() {
   sock.ev.on("messages.upsert", async ({ messages }) => {
     const msg = messages[0];
 
-    if (!msg.message) return;
-    if (msg.key.fromMe) return;
+    if (!msg.message || msg.key.fromMe) return;
 
     const from = msg.key.remoteJid;
 
@@ -241,43 +216,26 @@ async function startBot() {
 
     const command = normalizeText(text);
 
-    console.log("Mensagem recebida:", text);
+    console.log("Mensagem:", text);
 
     /*
     |--------------------------------------------------------------------------
-    | AJUDA / INICIO
+    | DIGITAÇÃO (HUMANO)
     |--------------------------------------------------------------------------
     */
-
-    if (["ajuda", "inicio", "iniciar"].includes(command)) {
-      const greeting = getGreetingByTime();
-
-      await sock.sendMessage(from, {
-        text:
-          `${greeting}.\n\n` +
-          "Seja bem-vindo(a) a Horizon Capital Dealer.\n\n" +
-          "Estamos disponiveis para prestar informacoes sobre investimentos, mercado de capitais, abertura de conta e solucoes financeiras.\n\n" +
-          "Por favor, escreva diretamente a sua questao."
-      });
-
-      return;
-    }
+    await sock.sendPresenceUpdate("composing", from);
+    await delay(800);
 
     /*
     |--------------------------------------------------------------------------
-    | SAUDACOES
+    | SAUDAÇÃO
     |--------------------------------------------------------------------------
     */
-
     if (isGreeting(command)) {
-      const greeting = getGreetingByTime();
+      const g = getGreetingByTime();
 
       await sock.sendMessage(from, {
-        text:
-          `${greeting}.\n\n` +
-          "Seja bem-vindo(a) a Horizon Capital Dealer.\n\n" +
-          "Estamos disponiveis para prestar esclarecimentos sobre investimentos, mercado de capitais, abertura de conta e solucoes financeiras.\n\n" +
-          "Por favor, envie a sua questao."
+        text: random(greetingsResponses)(g)
       });
 
       return;
@@ -285,18 +243,12 @@ async function startBot() {
 
     /*
     |--------------------------------------------------------------------------
-    | AGRADECIMENTO
+    | COMO ESTAS
     |--------------------------------------------------------------------------
     */
-
-    if (isThanks(command)) {
-      const greeting = getGreetingByTime();
-
+    if (isHowAreYou(command)) {
       await sock.sendMessage(from, {
-        text:
-          `${greeting}.\n\n` +
-          "Agradecemos o seu contacto.\n\n" +
-          "Permanecemos inteiramente disponiveis para qualquer esclarecimento adicional."
+        text: random(howAreYouResponses)
       });
 
       return;
@@ -307,12 +259,16 @@ async function startBot() {
     | FAQ
     |--------------------------------------------------------------------------
     */
-
     const matched = findFaq(command);
 
     if (matched) {
+      const g = getGreetingByTime();
+
       await sock.sendMessage(from, {
-        text: formatAnswer(matched)
+        text:
+          `${g}.\n\n` +
+          `${matched.a}\n\n` +
+          "Se precisares de mais ajuda, estou por aqui 😊"
       });
 
       return;
@@ -323,14 +279,8 @@ async function startBot() {
     | FALLBACK
     |--------------------------------------------------------------------------
     */
-
-    const greeting = getGreetingByTime();
-
     await sock.sendMessage(from, {
-      text:
-        `${greeting}.\n\n` +
-        "Nao foi possivel identificar a informacao pretendida com precisao.\n\n" +
-        "Para um esclarecimento mais adequado e personalizado, por favor contacte-nos directamente pelo telefone +258 87 667 4944."
+      text: random(fallbackResponses)
     });
   });
 }
