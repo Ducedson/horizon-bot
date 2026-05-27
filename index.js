@@ -12,17 +12,15 @@ function delay(ms) {
 
 /*
 |--------------------------------------------------------------------------
-| UTIL
+| MEMÓRIA SIMPLES DE USUÁRIO
 |--------------------------------------------------------------------------
 */
 
-function random(arr) {
-  return arr[Math.floor(Math.random() * arr.length)];
-}
+const userMemory = new Map();
 
 /*
 |--------------------------------------------------------------------------
-| SAUDAÇÃO POR HORÁRIO (MOÇAMBIQUE)
+| SAUDAÇÃO FORMAL
 |--------------------------------------------------------------------------
 */
 
@@ -44,44 +42,70 @@ function getGreetingByTime() {
 
 /*
 |--------------------------------------------------------------------------
-| RESPOSTAS HUMANAS
+| BASE DE CONHECIMENTO (FAQ OFICIAL)
 |--------------------------------------------------------------------------
 */
 
-const greetingsResponses = [
-  (g) => `${g} 👋\n\nComo posso ajudar-te hoje?`,
-  (g) => `${g} 😊\n\nEstou aqui para te ajudar. O que precisas?`,
-  (g) => `${g} 👋\n\nBem-vindo(a)! Diz-me como posso ajudar.`
-];
-
-const howAreYouResponses = [
-  "Estou bem 😊 obrigado por perguntares! E contigo?",
-  "Tudo ótimo por aqui 👍 e contigo, como estás?",
-  "Estou a funcionar perfeitamente 😄 diz-me como posso ajudar-te."
-];
-
-const fallbackResponses = [
-  "Não consegui perceber bem 😅 podes explicar de outra forma?",
-  "Hmm 🤔 não entendi totalmente, podes reformular?",
-  "Preciso de mais detalhes para te ajudar melhor 😊"
-];
-
-/*
-|--------------------------------------------------------------------------
-| FAQS
-|--------------------------------------------------------------------------
-*/
-
-const faqs = [
+const faq = [
   {
-    q: "O que e a Horizon Capital Dealer?",
-    a: "A Horizon Capital Dealer e uma sociedade financeira de corretagem especializada em investimentos, mercado de capitais, solucoes de tesouraria e assessoria financeira estrategica.",
-    k: ["horizon", "capital dealer", "o que e"]
+    intent: "o_que_e_horizon",
+    keywords: ["o que e", "quem e", "horizon capital", "o que significa horizon"],
+    answer:
+      "A Horizon Capital Dealer é uma sociedade financeira de corretagem especializada em investimentos, mercado de capitais, soluções de tesouraria e assessoria financeira estratégica.\n\nAjudamos particulares, empresas e investidores institucionais a acederem ao mercado financeiro de forma estruturada, segura e eficiente."
   },
   {
-    q: "A Horizon e um banco?",
-    a: "Nao. A Horizon Capital Dealer nao e um banco comercial, mas sim uma sociedade financeira especializada em investimentos e mercado de capitais.",
-    k: ["banco", "horizon banco"]
+    intent: "horizon_e_banco",
+    keywords: ["banco", "horizon e banco", "é um banco"],
+    answer:
+      "Não.\n\nA Horizon Capital Dealer não é um banco comercial. Somos uma sociedade financeira especializada em investimentos financeiros em mercado de capitais, intermediação financeira e assessoria estratégica."
+  },
+  {
+    intent: "diferenca_banco_corretora",
+    keywords: ["diferenca", "banco e corretora", "corretora"],
+    answer:
+      "Os bancos focam-se principalmente em contas bancárias, crédito, pagamentos e serviços tradicionais.\n\nAs corretoras especializam-se em investimentos financeiros, estruturação de produtos em mercado de capitais, gestão de liquidez e assessoria financeira."
+  },
+  {
+    intent: "o_que_e_investir",
+    keywords: ["investir", "o que e investir", "significa investir"],
+    answer:
+      "Investir significa aplicar recursos financeiros com o objetivo de obter retorno futuro."
+  },
+  {
+    intent: "porque_investir",
+    keywords: ["porque investir", "vantagens investir", "por que investir"],
+    answer:
+      "Investir ajuda a proteger capital, aumentar património, gerar rendimento e melhorar a gestão financeira, reduzindo o impacto da inflação ao longo do tempo."
+  },
+  {
+    intent: "risco_investimento",
+    keywords: ["risco", "todo investimento tem risco"],
+    answer:
+      "Sim. Todos os investimentos possuem algum nível de risco. O importante é investir de acordo com o perfil financeiro, objetivos, tolerância ao risco e conhecimento do produto."
+  },
+  {
+    intent: "perfil_investidor",
+    keywords: ["perfil de investidor", "o que e perfil", "investidor"],
+    answer:
+      "É uma avaliação utilizada para compreender a experiência, capacidade financeira, objetivos e tolerância ao risco do cliente. Com base nisso, são identificados investimentos mais adequados."
+  },
+  {
+    intent: "abrir_conta",
+    keywords: ["abrir conta", "como abrir conta", "abertura de conta"],
+    answer:
+      "O processo normalmente inclui contacto inicial, entrega de documentos, processo KYC, avaliação do perfil de investidor e abertura da conta."
+  },
+  {
+    intent: "kyc",
+    keywords: ["kyc", "conheca o cliente"],
+    answer:
+      "KYC significa Know Your Customer (Conheça o Seu Cliente). É um procedimento obrigatório para confirmar identidade, prevenir fraude e combater branqueamento de capitais."
+  },
+  {
+    intent: "contacto",
+    keywords: ["contacto", "como falar", "telefone", "email"],
+    answer:
+      "Pode contactar-nos através do telefone +258 87 667 4944 ou do e-mail info@horizoncapital.co.mz."
   }
 ];
 
@@ -91,7 +115,7 @@ const faqs = [
 |--------------------------------------------------------------------------
 */
 
-function normalizeText(text) {
+function normalize(text) {
   return text
     .normalize("NFD")
     .replace(/[\u0300-\u036f]/g, "")
@@ -103,59 +127,28 @@ function normalizeText(text) {
 
 /*
 |--------------------------------------------------------------------------
-| DETECÇÕES
+| DETECÇÃO DE INTENÇÃO (MELHORADA)
 |--------------------------------------------------------------------------
 */
 
-function isGreeting(text) {
-  return [
-    "bom dia",
-    "boa tarde",
-    "boa noite",
-    "ola",
-    "oi",
-    "hello",
-    "hi"
-  ].includes(text);
-}
-
-function isHowAreYou(text) {
-  return [
-    "como estas",
-    "como esta",
-    "tudo bem",
-    "como vai",
-    "how are you"
-  ].includes(text);
-}
-
-/*
-|--------------------------------------------------------------------------
-| FAQ SEARCH
-|--------------------------------------------------------------------------
-*/
-
-function findFaq(command) {
+function findAnswer(input) {
   let best = null;
   let bestScore = 0;
 
-  faqs.forEach((faq) => {
-    const question = normalizeText(faq.q);
+  for (const item of faq) {
+    let score = 0;
 
-    let score =
-      question.includes(command) || command.includes(question) ? 2 : 0;
-
-    faq.k.forEach((keyword) => {
-      if (command.includes(normalizeText(keyword))) {
-        score += 1;
+    for (const k of item.keywords) {
+      if (input.includes(normalize(k))) {
+        score += 2;
       }
-    });
+    }
 
     if (score > bestScore) {
       bestScore = score;
-      best = faq;
+      best = item;
     }
-  });
+  }
 
   return bestScore > 0 ? best : null;
 }
@@ -173,7 +166,7 @@ async function startBot() {
   const sock = makeWASocket({
     auth: state,
     printQRInTerminal: false,
-    browser: ["Ubuntu", "Chrome", "120.0.0"]
+    browser: ["Horizon IA", "Chrome", "1.0.0"]
   });
 
   sock.ev.on("creds.update", saveCreds);
@@ -183,11 +176,6 @@ async function startBot() {
 
     if (qr) {
       qrcode.generate(qr, { small: true });
-      console.log("Escaneia o QR Code");
-    }
-
-    if (connection === "open") {
-      console.log("BOT CONECTADO");
     }
 
     if (connection === "close") {
@@ -196,14 +184,12 @@ async function startBot() {
 
       if (reason === DisconnectReason.loggedOut) return;
 
-      console.log("Reconectando...");
       delay(5000).then(startBot);
     }
   });
 
   sock.ev.on("messages.upsert", async ({ messages }) => {
     const msg = messages[0];
-
     if (!msg.message || msg.key.fromMe) return;
 
     const from = msg.key.remoteJid;
@@ -214,61 +200,33 @@ async function startBot() {
 
     if (!text) return;
 
-    const command = normalizeText(text);
+    const input = normalize(text);
 
-    console.log("Mensagem:", text);
-
-    /*
-    |--------------------------------------------------------------------------
-    | DIGITAÇÃO (HUMANO)
-    |--------------------------------------------------------------------------
-    */
     await sock.sendPresenceUpdate("composing", from);
-    await delay(800);
+    await delay(900);
 
     /*
     |--------------------------------------------------------------------------
-    | SAUDAÇÃO
+    | MEMÓRIA DE NOME
     |--------------------------------------------------------------------------
     */
-    if (isGreeting(command)) {
-      const g = getGreetingByTime();
 
-      await sock.sendMessage(from, {
-        text: random(greetingsResponses)(g)
-      });
-
-      return;
-    }
+    let user = userMemory.get(from);
 
     /*
     |--------------------------------------------------------------------------
-    | COMO ESTAS
+    | PRIMEIRO CONTACTO (PEDIR NOME)
     |--------------------------------------------------------------------------
     */
-    if (isHowAreYou(command)) {
-      await sock.sendMessage(from, {
-        text: random(howAreYouResponses)
-      });
 
-      return;
-    }
-
-    /*
-    |--------------------------------------------------------------------------
-    | FAQ
-    |--------------------------------------------------------------------------
-    */
-    const matched = findFaq(command);
-
-    if (matched) {
-      const g = getGreetingByTime();
+    if (!user) {
+      userMemory.set(from, { name: null });
 
       await sock.sendMessage(from, {
         text:
-          `${g}.\n\n` +
-          `${matched.a}\n\n` +
-          "Se precisares de mais ajuda, estou por aqui 😊"
+          `${getGreetingByTime()},\n\n` +
+          "Eu sou o Horizon IA, Assistente Inteligente da Horizon Capital Dealer.\n\n" +
+          "Por gentileza, poderia partilhar o seu nome para que eu possa atendê-lo(a) de forma mais próxima e personalizada?"
       });
 
       return;
@@ -276,11 +234,52 @@ async function startBot() {
 
     /*
     |--------------------------------------------------------------------------
-    | FALLBACK
+    | CAPTURA DE NOME
     |--------------------------------------------------------------------------
     */
+
+    if (!user.name) {
+      user.name = text;
+      userMemory.set(from, user);
+
+      await sock.sendMessage(from, {
+        text:
+          `Muito obrigado, ${user.name}.\n\n` +
+          "Como posso ajudar hoje?"
+      });
+
+      return;
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | FAQ MATCHING
+    |--------------------------------------------------------------------------
+    */
+
+    const matched = findAnswer(input);
+
+    if (matched) {
+      await sock.sendMessage(from, {
+        text:
+          `${getGreetingByTime()}, ${user.name}.\n\n` +
+          matched.answer
+      });
+
+      return;
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | FALLBACK PROFISSIONAL
+    |--------------------------------------------------------------------------
+    */
+
     await sock.sendMessage(from, {
-      text: random(fallbackResponses)
+      text:
+        `${getGreetingByTime()}, ${user.name}.\n\n` +
+        "Não consegui identificar claramente a sua solicitação.\n\n" +
+        "Para um atendimento mais preciso, pode contactar-nos através do telefone +258 87 667 4944 ou reformular a sua pergunta."
     });
   });
 }
