@@ -1,0 +1,28 @@
+{
+  "name": "horizon-bot",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "dependencies": {
+    "@bot-whatsapp/bot": "^0.1.38",
+    "@bot-whatsapp/database": "^0.1.38",
+    "@bot-whatsapp/portal": "^0.1.38",
+    "@bot-whatsapp/provider": "^0.1.38",
+    "@bot-whatsapp/provider-baileys": "^0.1.0-alpha.18",
+    "@bot-whatsapp/provider-web-whatsapp": "^0.1.1-alpha.0",
+    "@whiskeysockets/baileys": "^7.0.0-rc13",
+    "dotenv": "^17.4.2",
+    "mock": "^0.1.1",
+    "openai": "^6.38.0",
+    "pino": "^10.3.1",
+    "qrcode-terminal": "^0.12.0",
+    "whatsapp-web.js": "^1.23.0"
+  }
+}
