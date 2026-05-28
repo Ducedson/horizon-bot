@@ -72,7 +72,7 @@ function normalize(text = "") {
 
 /*
 |--------------------------------------------------------------------------
-| REMOVER PALAVRAS IRRELEVANTES
+| STOP WORDS
 |--------------------------------------------------------------------------
 */
 
@@ -81,8 +81,8 @@ function removeStopWords(text) {
   const stopWords = [
     "a",
     "o",
-    "as",
     "os",
+    "as",
     "de",
     "da",
     "do",
@@ -90,8 +90,8 @@ function removeStopWords(text) {
     "dos",
     "e",
     "ou",
-    "por",
     "para",
+    "por",
     "com",
     "sem",
     "um",
@@ -104,7 +104,6 @@ function removeStopWords(text) {
     "queria",
     "preciso",
     "saber",
-    "entender",
     "sobre"
   ];
 
@@ -165,6 +164,48 @@ function isThanks(text) {
 
 /*
 |--------------------------------------------------------------------------
+| VALIDAR NOME
+|--------------------------------------------------------------------------
+*/
+
+function looksLikeName(text) {
+
+  const value = normalize(text);
+
+  if (value.length < 2) {
+    return false;
+  }
+
+  const invalidNames = [
+    "ola",
+    "oi",
+    "bom dia",
+    "boa tarde",
+    "boa noite",
+    "tudo bem",
+    "sim",
+    "nao",
+    "quero investir",
+    "investir",
+    "como investir",
+    "como fazer"
+  ];
+
+  if (invalidNames.includes(value)) {
+    return false;
+  }
+
+  const words = value.split(" ");
+
+  if (words.length > 3) {
+    return false;
+  }
+
+  return true;
+}
+
+/*
+|--------------------------------------------------------------------------
 | FAQ
 |--------------------------------------------------------------------------
 */
@@ -191,7 +232,7 @@ const faq = [
     keywords: [
       "horizon e banco",
       "e banco",
-      "vocês são banco",
+      "vocês sao banco",
       "banco comercial"
     ],
     answer:
@@ -199,28 +240,17 @@ const faq = [
   },
 
   {
-    intent: "diferenca_banco_corretora",
-    keywords: [
-      "diferenca banco corretora",
-      "corretora",
-      "qual a diferenca",
-      "banco e corretora"
-    ],
-    answer:
-      "Os bancos focam-se principalmente em contas bancárias, crédito, pagamentos e serviços financeiros tradicionais.\n\nAs corretoras especializam-se em investimentos financeiros, estruturação de produtos de mercado de capitais, gestão de liquidez e assessoria financeira."
-  },
-
-  {
     intent: "investir",
     keywords: [
       "investir",
-      "o que e investir",
+      "quero investir",
       "como investir",
       "investimento",
-      "aplicar dinheiro"
+      "aplicar dinheiro",
+      "comecar investir"
     ],
     answer:
-      "Investir significa aplicar recursos financeiros com o objetivo de obter retorno futuro."
+      "Investir significa aplicar recursos financeiros com o objetivo de obter retorno futuro.\n\nA Horizon Capital Dealer pode ajudá-lo(a) a identificar soluções adequadas ao seu perfil financeiro e objetivos."
   },
 
   {
@@ -228,8 +258,7 @@ const faq = [
     keywords: [
       "porque investir",
       "vantagem investir",
-      "vale a pena investir",
-      "crescer dinheiro"
+      "vale a pena investir"
     ],
     answer:
       "Investir pode ajudar a proteger capital, aumentar património, gerar rendimento e melhorar a gestão financeira."
@@ -240,11 +269,10 @@ const faq = [
     keywords: [
       "risco",
       "perder dinheiro",
-      "investimento seguro",
-      "todo investimento tem risco"
+      "investimento seguro"
     ],
     answer:
-      "Todos os investimentos possuem algum nível de risco. O importante é investir de acordo com o perfil financeiro e os objetivos do cliente."
+      "Todos os investimentos possuem algum nível de risco. O importante é investir de acordo com o perfil financeiro, objetivos e tolerância ao risco."
   },
 
   {
@@ -267,7 +295,7 @@ const faq = [
       "criar conta"
     ],
     answer:
-      "O processo normalmente inclui contacto inicial, entrega de documentos, processo KYC, avaliação do perfil de investidor e abertura da conta."
+      "O processo normalmente inclui:\n\n1. Contacto inicial\n2. Entrega de documentos\n3. Processo KYC\n4. Avaliação do perfil de investidor\n5. Abertura da conta."
   },
 
   {
@@ -294,28 +322,6 @@ const faq = [
   },
 
   {
-    intent: "tempo_conta",
-    keywords: [
-      "quanto tempo demora",
-      "tempo abertura",
-      "demora conta"
-    ],
-    answer:
-      "O tempo de abertura depende da entrega correta dos documentos e da validação do processo de compliance."
-  },
-
-  {
-    intent: "dados",
-    keywords: [
-      "dados protegidos",
-      "privacidade",
-      "seguranca"
-    ],
-    answer:
-      "A Horizon trata toda informação dos clientes com confidencialidade e elevados padrões de segurança."
-  },
-
-  {
     intent: "consultoria",
     keywords: [
       "consultoria",
@@ -325,17 +331,6 @@ const faq = [
     ],
     answer:
       "Prestamos serviços de consultoria financeira, assessoria de investimentos, corporate finance, soluções de tesouraria e assessoria bancária."
-  },
-
-  {
-    intent: "financiamento",
-    keywords: [
-      "financiamento",
-      "credito empresarial",
-      "ajuda empresas"
-    ],
-    answer:
-      "Apoiamos empresas na identificação das soluções financeiras mais adequadas disponíveis no sistema financeiro nacional."
   },
 
   {
@@ -356,9 +351,11 @@ const faq = [
       "telefone",
       "email",
       "contacto",
+      "contactar",
       "falar convosco",
       "localizacao",
-      "onde ficam"
+      "onde ficam",
+      "morada"
     ],
     answer:
       "Pode contactar-nos através:\n\nTelefone: +258 87 667 4944\nE-mail: info@horizoncapital.co.mz"
@@ -421,17 +418,11 @@ function findAnswer(input) {
         }
       }
 
-      /*
-      |--------------------------------------------------------------------------
-      | SCORE INTELIGENTE
-      |--------------------------------------------------------------------------
-      */
-
       score += matchedWords * 3;
 
       /*
       |--------------------------------------------------------------------------
-      | FRASES PARECIDAS
+      | MATCH INTELIGENTE
       |--------------------------------------------------------------------------
       */
 
@@ -567,7 +558,7 @@ async function startBot() {
           from
         );
 
-        await delay(1200);
+        await delay(1000);
 
         let user =
           userMemory.get(from);
@@ -582,7 +573,7 @@ async function startBot() {
 
           userMemory.set(from, {
             name: null,
-            pendingQuestion: text
+            lastIntent: null
           });
 
           await sock.sendMessage(from, {
@@ -603,35 +594,69 @@ async function startBot() {
 
         if (!user.name) {
 
-          user.name = text.trim();
+          /*
+          |--------------------------------------------------------------------------
+          | EVITAR SAUDAÇÕES COMO NOME
+          |--------------------------------------------------------------------------
+          */
 
-          userMemory.set(from, user);
+          if (!looksLikeName(text)) {
 
-          const originalQuestion =
-            user.pendingQuestion || "";
+            /*
+            |--------------------------------------------------------------------------
+            | SAUDAÇÃO
+            |--------------------------------------------------------------------------
+            */
 
-          if (originalQuestion) {
-
-            const matched =
-              findAnswer(
-                normalize(originalQuestion)
-              );
-
-            if (matched) {
+            if (isGreeting(input)) {
 
               await sock.sendMessage(from, {
                 text:
-                  `Muito obrigado, ${user.name}.\n\n` +
-                  matched.answer
+                  `${getGreetingByTime()}.\n\n` +
+                  "Será um prazer atendê-lo(a).\n\n" +
+                  "Antes de continuarmos, poderia por gentileza informar o seu nome?"
               });
-
-              user.pendingQuestion = null;
-
-              userMemory.set(from, user);
 
               return;
             }
+
+            /*
+            |--------------------------------------------------------------------------
+            | FAQ ANTES DO NOME
+            |--------------------------------------------------------------------------
+            */
+
+            const matchedBeforeName =
+              findAnswer(input);
+
+            if (matchedBeforeName) {
+
+              await sock.sendMessage(from, {
+                text:
+                  `${matchedBeforeName.answer}\n\n` +
+                  "Para continuarmos o atendimento de forma personalizada, poderia por gentileza informar o seu nome?"
+              });
+
+              return;
+            }
+
+            await sock.sendMessage(from, {
+              text:
+                "Peço por gentileza que informe o seu nome para continuarmos o atendimento."
+            });
+
+            return;
           }
+
+          /*
+          |--------------------------------------------------------------------------
+          | GUARDAR NOME
+          |--------------------------------------------------------------------------
+          */
+
+          user.name = text.trim();
+
+          userMemory.set(from, user);
 
           await sock.sendMessage(from, {
             text:
@@ -672,7 +697,7 @@ async function startBot() {
             text:
               `${getGreetingByTime()}, ${user.name}.\n\n` +
               "Agradecemos o seu contacto.\n\n" +
-              "Permanecemos inteiramente disponíveis para qualquer esclarecimento adicional."
+              "Permanecemos disponíveis para qualquer esclarecimento adicional."
           });
 
           return;
@@ -689,10 +714,65 @@ async function startBot() {
 
         if (matched) {
 
+          user.lastIntent =
+            matched.intent;
+
+          userMemory.set(from, user);
+
           await sock.sendMessage(from, {
             text:
               `${getGreetingByTime()}, ${user.name}.\n\n` +
               matched.answer
+          });
+
+          return;
+        }
+
+        /*
+        |--------------------------------------------------------------------------
+        | CONTEXTO INTELIGENTE
+        |--------------------------------------------------------------------------
+        */
+
+        if (
+          user.lastIntent === "investir" &&
+          (
+            input.includes("como") ||
+            input.includes("fazer") ||
+            input.includes("comecar")
+          )
+        ) {
+
+          await sock.sendMessage(from, {
+            text:
+              `${getGreetingByTime()}, ${user.name}.\n\n` +
+              "O primeiro passo para investir é compreender os seus objetivos financeiros, perfil de risco e horizonte de investimento.\n\n" +
+              "A Horizon Capital Dealer pode apoiar em todo o processo de forma estruturada e personalizada."
+          });
+
+          return;
+        }
+
+        /*
+        |--------------------------------------------------------------------------
+        | CONTACTO RÁPIDO
+        |--------------------------------------------------------------------------
+        */
+
+        if (
+          input.includes("contactar") ||
+          input.includes("telefone") ||
+          input.includes("email") ||
+          input.includes("localizacao") ||
+          input.includes("morada")
+        ) {
+
+          await sock.sendMessage(from, {
+            text:
+              `${getGreetingByTime()}, ${user.name}.\n\n` +
+              "Pode contactar-nos através:\n\n" +
+              "Telefone: +258 87 667 4944\n" +
+              "E-mail: info@horizoncapital.co.mz"
           });
 
           return;
