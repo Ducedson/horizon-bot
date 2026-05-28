@@ -131,6 +131,9 @@ function isGreeting(text) {
     "saudacoes",
     "hello",
     "hi",
+    "como esta",
+    "kmk",
+    "como vai",
     "tudo bem"
   ];
 
@@ -154,6 +157,8 @@ function isThanks(text) {
     "valeu",
     "thanks",
     "muito obrigado",
+    "khanimambo",
+    "nhimboguidle",
     "muito obrigada"
   ];
 
@@ -219,6 +224,7 @@ const faq = [
       "quem sao voces",
       "o que fazem",
       "empresa",
+      "quero informacoes sobre voces",
       "sociedade financeira",
       "horizon capital",
       "quem e a horizon"
@@ -280,6 +286,7 @@ const faq = [
     keywords: [
       "perfil investidor",
       "perfil financeiro",
+      "quem pode investir",
       "tolerancia risco"
     ],
     answer:
@@ -292,6 +299,8 @@ const faq = [
       "abrir conta",
       "como abrir conta",
       "abertura conta",
+      "como fazer para abrir conta",
+      "qual e o processo",
       "criar conta"
     ],
     answer:
@@ -359,6 +368,24 @@ const faq = [
     ],
     answer:
       "Pode contactar-nos através:\n\nTelefone: +258 87 667 4944\nE-mail: info@horizoncapital.co.mz"
+  },
+
+   {
+    intent: "endereco",
+    keywords: [
+      "localizacao",
+      "onde voces estao",
+      "encontrar",
+      "escritorio",
+      "pais",
+      "onde fica",
+      "onde ficam",
+      "morada",
+      "sao de que pais",
+      "onde posso vos localizar"
+    ],
+    answer:
+      "O nosso escritório esta localizado em:\n\n Moçambique, maputo\n Av. Desportista, Jat VI"
   }
 
 ];
@@ -535,8 +562,7 @@ async function startBot() {
 
         const from =
           msg.key.remoteJid;
-
-        const text =
+          const text =
           msg.message?.conversation ||
           msg.message?.extendedTextMessage?.text ||
           msg.message?.imageMessage?.caption ||
@@ -609,12 +635,11 @@ async function startBot() {
             */
 
             if (isGreeting(input)) {
-
               await sock.sendMessage(from, {
                 text:
                   `${getGreetingByTime()}.\n\n` +
                   "Será um prazer atendê-lo(a).\n\n" +
-                  "Antes de continuarmos, poderia por gentileza informar o seu nome?"
+                  "Antes de continuarmos, poderia por gentileza facultarr-me o seu nome?"
               });
 
               return;
@@ -678,7 +703,7 @@ async function startBot() {
           await sock.sendMessage(from, {
             text:
               `${getGreetingByTime()}, ${user.name}.\n\n` +
-              "Espero que esteja bem.\n\n" +
+              "Votos de que esteja bem.\n\n" +
               "Como posso ajudar hoje relativamente à Horizon Capital Dealer?"
           });
 
@@ -787,8 +812,8 @@ async function startBot() {
         await sock.sendMessage(from, {
           text:
             `${getGreetingByTime()}, ${user.name}.\n\n` +
-            "Não consegui identificar claramente a sua solicitação.\n\n" +
-            "Para um atendimento mais adequado, recomendamos contacto directo através do telefone +258 87 667 4944."
+            "Imensas desculpas, mas não consegui identificar claramente a sua solicitação.\n\n" +
+            "Para um atendimento mais adequado, recomendo o contacto directo através do telefone +258 87 667 4944."
         });
 
       } catch (err) {
